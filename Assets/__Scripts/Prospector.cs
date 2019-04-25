@@ -199,6 +199,7 @@ public class Prospector : MonoBehaviour {
                 MoveToDiscard(target);
                 MoveToTarget(Draw());
                 UpdateDrawPile();
+                ScoreManager.EVENT(eScoreEvent.draw);
                 break;
 
             case eCardState.tableau:
@@ -207,13 +208,59 @@ public class Prospector : MonoBehaviour {
                 {
                     validMatch = false;
                 }
+                if (!AdjacentRank(cd, target))
+                {
+                    validMatch = false;
+                }
                 if (!validMatch) return;
 
                 tableau.Remove(cd);
                 MoveToTarget(cd);
                 SetTableauFaces();
+                ScoreManager.EVENT(eScoreEvent.mine);
                 break;
+
         }
+
+        CheckForGameOver();
+    }
+
+    void CheckForGameOver()
+    {
+        if (tableau.Count == 0)
+        {
+            GameOver(true);
+            return;
+        }
+
+        if (drawPile.Count > 0)
+        {
+            return;
+        }
+
+        foreach (CardProspector cd in tableau)
+        {
+            if (AdjacentRank(cd, target))
+            {
+                return;
+            }
+        }
+
+        GameOver(false);
+    }
+
+    void GameOver(bool won)
+    {
+        if (won)
+        {
+            ScoreManager.EVENT(eScoreEvent.gameWin);
+        }
+        else
+        {
+            ScoreManager.EVENT(eScoreEvent.gameLoss);
+        }
+
+        SceneManager.LoadScene("__Prospector_Scene_0");
     }
 
     public bool AdjacentRank(CardProspector c0, CardProspector c1)
